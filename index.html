@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Flash Cards</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Myanmar:wght@300;400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #08080f;
+      --surface: rgba(255,255,255,0.04);
+      --surface-solid: #131320;
+      --surface-hover: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.06);
+      --text: #eeeef4;
+      --text-muted: #7b7b9a;
+      --text-dim: #4e4e6a;
+      --overlay-bg: rgba(0,0,0,0.75);
+      --reveal-bg: rgba(19,19,32,0.7);
+      --scrollbar-thumb: rgba(255,255,255,0.08);
+      --accent-1: #7c6aff;
+      --accent-2: #ff6b9d;
+      --accent-3: #22d3ee;
+      --accent-4: #fbbf24;
+      --accent-5: #34d399;
+      --gradient-1: linear-gradient(135deg, #7c6aff 0%, #c084fc 100%);
+      --gradient-2: linear-gradient(135deg, #22d3ee 0%, #7c6aff 100%);
+      --gradient-3: linear-gradient(135deg, #ff6b9d 0%, #fbbf24 100%);
+      --gradient-4: linear-gradient(135deg, #34d399 0%, #22d3ee 100%);
+      --gradient-5: linear-gradient(135deg, #fbbf24 0%, #ff6b9d 100%);
+      --card-bg-1: linear-gradient(160deg, rgba(124,106,255,0.12) 0%, rgba(124,106,255,0.02) 100%);
+      --card-bg-2: linear-gradient(160deg, rgba(34,211,238,0.10) 0%, rgba(34,211,238,0.02) 100%);
+      --card-bg-3: linear-gradient(160deg, rgba(255,107,157,0.10) 0%, rgba(255,107,157,0.02) 100%);
+      --card-bg-4: linear-gradient(160deg, rgba(52,211,153,0.10) 0%, rgba(52,211,153,0.02) 100%);
+      --card-bg-5: linear-gradient(160deg, rgba(251,191,36,0.10) 0%, rgba(251,191,36,0.02) 100%);
+      --answer-bg: rgba(124,106,255,0.08);
+      --answer-border: rgba(124,106,255,0.15);
+      --why-bg: rgba(255,107,157,0.06);
+      --why-border: rgba(255,107,157,0.12);
+      --tag-bg: rgba(124,106,255,0.1);
+      --radius: 20px;
+      --radius-sm: 12px;
+    }
+
+    html.light {
+      --bg: #f3f3f8;
+      --surface: rgba(255,255,255,0.8);
+      --surface-solid: #ffffff;
+      --surface-hover: rgba(255,255,255,1);
+      --border: rgba(0,0,0,0.06);
+      --text: #1a1a2e;
+      --text-muted: #6b6b8a;
+      --text-dim: #9e9eb8;
+      --overlay-bg: rgba(243,243,248,0.85);
+      --reveal-bg: rgba(255,255,255,0.7);
+      --scrollbar-thumb: rgba(0,0,0,0.08);
+      --card-bg-1: linear-gradient(160deg, rgba(124,106,255,0.08) 0%, rgba(124,106,255,0.01) 100%);
+      --card-bg-2: linear-gradient(160deg, rgba(34,211,238,0.07) 0%, rgba(34,211,238,0.01) 100%);
+      --card-bg-3: linear-gradient(160deg, rgba(255,107,157,0.07) 0%, rgba(255,107,157,0.01) 100%);
+      --card-bg-4: linear-gradient(160deg, rgba(52,211,153,0.07) 0%, rgba(52,211,153,0.01) 100%);
+      --card-bg-5: linear-gradient(160deg, rgba(251,191,36,0.07) 0%, rgba(251,191,36,0.01) 100%);
+      --answer-bg: rgba(124,106,255,0.05);
+      --answer-border: rgba(124,106,255,0.12);
+      --why-bg: rgba(255,107,157,0.04);
+      --why-border: rgba(255,107,157,0.1);
+      --tag-bg: rgba(124,106,255,0.07);
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans Myanmar', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.4s, color 0.4s;
+    }
+
+    /* Ambient glow */
+    .glow { position: fixed; pointer-events: none; z-index: 0; border-radius: 50%; filter: blur(100px); }
+    .glow-1 { top: -10%; left: 10%; width: 500px; height: 500px; background: rgba(124,106,255,0.06); }
+    .glow-2 { bottom: 0; right: 5%; width: 400px; height: 400px; background: rgba(255,107,157,0.04); }
+    .glow-3 { top: 40%; left: 50%; width: 350px; height: 350px; background: rgba(34,211,238,0.03); }
+    html.light .glow-1 { background: rgba(124,106,255,0.04); }
+    html.light .glow-2 { background: rgba(255,107,157,0.03); }
+    html.light .glow-3 { background: rgba(34,211,238,0.02); }
+
+    .app {
+      position: relative; z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    /* Top bar */
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .toggle-group {
+      display: flex;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: var(--surface-solid);
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .toggle-btn {
+      padding: 7px 14px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    .toggle-btn.active { background: var(--accent-1); color: white; }
+    .toggle-btn:hover:not(.active) { color: var(--text); }
+    .toggle-btn svg { width: 14px; height: 14px; }
+
+    /* Header */
+    .header { text-align: center; margin-bottom: 40px; }
+
+    .header h1 {
+      font-size: 2.2rem; font-weight: 800;
+      background: var(--gradient-1);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .header p { color: var(--text-muted); font-size: 0.95rem; font-weight: 300; }
+
+    .stats {
+      display: flex; justify-content: center; gap: 24px; margin-top: 16px;
+    }
+
+    .stat { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--text-muted); }
+    .stat-num { font-weight: 700; color: var(--text); }
+
+    /* Search */
+    .search-bar { position: relative; margin-bottom: 28px; }
+
+    .search-bar input {
+      width: 100%;
+      padding: 13px 20px 13px 46px;
+      background: var(--surface-solid);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .search-bar input::placeholder { color: var(--text-dim); }
+    .search-bar input:focus { border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(124,106,255,0.12); }
+
+    .search-bar svg {
+      position: absolute; left: 16px; top: 50%;
+      transform: translateY(-50%); color: var(--text-dim);
+    }
+
+    /* Tag filter - removed, search handles tags */
+
+    /* ===== BENTO GRID ===== */
+    .bento-grid {
+      columns: 3;
+      column-gap: 16px;
+    }
+
+    .card-item {
+      break-inside: avoid;
+      margin-bottom: 16px;
+      border-radius: var(--radius);
+      padding: 28px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s, border-color 0.3s;
+    }
+
+    .card-item:hover {
+      transform: translateY(-4px);
+      border-color: rgba(124,106,255,0.2);
+    }
+
+    html.light .card-item:hover {
+      box-shadow: 0 12px 40px rgba(124,106,255,0.1);
+    }
+
+    /* Card color variants */
+    .card-item[data-color="0"] { background: var(--card-bg-1); }
+    .card-item[data-color="1"] { background: var(--card-bg-2); }
+    .card-item[data-color="2"] { background: var(--card-bg-3); }
+    .card-item[data-color="3"] { background: var(--card-bg-4); }
+    .card-item[data-color="4"] { background: var(--card-bg-5); }
+
+    .card-title {
+      font-size: 1.1rem; font-weight: 700;
+      line-height: 1.35;
+      margin-bottom: 10px;
+      letter-spacing: -0.2px;
+    }
+
+    .card-question {
+      font-size: 0.85rem; color: var(--text-muted);
+      line-height: 1.55; font-weight: 300;
+    }
+
+    /* Tall cards show answer preview */
+    .card-answer-preview {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      font-weight: 300;
+    }
+
+    html.light .card-answer-preview { background: rgba(0,0,0,0.02); }
+
+    .card-tags {
+      display: flex; gap: 5px; margin-top: 16px; flex-wrap: wrap;
+    }
+
+    .card-tag {
+      font-size: 0.65rem; padding: 3px 9px;
+      border-radius: 50px;
+      background: var(--tag-bg);
+      color: var(--accent-1); font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+
+    .card-arrow {
+      position: absolute;
+      top: 24px; right: 24px;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-dim);
+      transition: all 0.3s;
+    }
+
+    .card-item:hover .card-arrow {
+      border-color: var(--accent-1);
+      color: var(--accent-1);
+      background: rgba(124,106,255,0.1);
+    }
+
+    /* ===== DETAIL VIEW ===== */
+    .detail-overlay {
+      position: fixed; inset: 0;
+      background: var(--overlay-bg);
+      backdrop-filter: blur(12px);
+      z-index: 100; display: none;
+      align-items: center; justify-content: center;
+      padding: 24px; opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .detail-overlay.active { display: flex; opacity: 1; }
+
+    .detail-card {
+      background: var(--surface-solid);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      width: 100%; max-width: 620px; max-height: 90vh;
+      overflow-y: auto; position: relative;
+      animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    html.light .detail-card { box-shadow: 0 24px 80px rgba(0,0,0,0.12); }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px) scale(0.97); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .detail-gradient-bar { height: 3px; border-radius: 24px 24px 0 0; }
+    .detail-content { padding: 36px; }
+
+    .detail-close {
+      position: absolute; top: 18px; right: 18px;
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface-solid); color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s; z-index: 10;
+    }
+
+    .detail-close:hover { background: var(--surface-hover); color: var(--text); }
+
+    .detail-title {
+      font-size: 1.4rem; font-weight: 800;
+      margin-bottom: 28px; padding-right: 44px;
+      letter-spacing: -0.3px; line-height: 1.3;
+    }
+
+    .detail-section { margin-bottom: 24px; }
+
+    .detail-label {
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .label-question { color: var(--accent-3); }
+    .label-answer { color: var(--accent-1); }
+    .label-why { color: var(--accent-2); }
+
+    .detail-text { font-size: 0.92rem; line-height: 1.75; color: var(--text); font-weight: 300; }
+
+    .detail-answer-box {
+      background: var(--answer-bg);
+      border: 1px solid var(--answer-border);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px; cursor: pointer;
+      transition: all 0.3s;
+      position: relative; overflow: hidden;
+    }
+
+    .detail-answer-box.hidden .detail-text { filter: blur(8px); user-select: none; }
+
+    .detail-answer-box .reveal-hint {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; color: var(--accent-1); font-weight: 500;
+      background: var(--reveal-bg); transition: opacity 0.3s;
+    }
+
+    .detail-answer-box:not(.hidden) .reveal-hint { opacity: 0; pointer-events: none; }
+
+    .detail-why-box {
+      background: var(--why-bg);
+      border: 1px solid var(--why-border);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+    }
+
+    .detail-why-list { list-style: none; padding: 0; margin: 0; }
+    .detail-why-list li {
+      padding: 5px 0; font-size: 0.9rem;
+      color: var(--text); font-weight: 300;
+      display: flex; align-items: flex-start; gap: 10px;
+      line-height: 1.6;
+    }
+    .detail-why-list li::before {
+      content: ''; width: 5px; height: 5px;
+      border-radius: 50%; background: var(--accent-5);
+      flex-shrink: 0; margin-top: 9px;
+    }
+
+    .detail-examples { list-style: none; padding: 0; }
+
+    .detail-examples li {
+      padding: 6px 0; font-size: 0.88rem;
+      color: var(--text-muted); font-weight: 300;
+      display: flex; align-items: flex-start; gap: 10px;
+      line-height: 1.5;
+    }
+
+    .detail-examples li::before {
+      content: ''; width: 5px; height: 5px;
+      border-radius: 50%; background: var(--accent-1);
+      flex-shrink: 0; margin-top: 8px;
+    }
+
+    .detail-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+    .detail-tag {
+      font-size: 0.72rem; padding: 4px 12px;
+      border-radius: 50px; background: var(--tag-bg);
+      color: var(--accent-1);
+    }
+
+    /* Detail nav */
+    .detail-nav {
+      display: flex; justify-content: space-between;
+      padding: 14px 36px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .detail-nav-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 16px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent; color: var(--text-muted);
+      font-size: 0.82rem; font-family: inherit;
+      cursor: pointer; transition: all 0.2s;
+    }
+
+    .detail-nav-btn:hover { background: var(--surface-hover); color: var(--text); border-color: var(--accent-1); }
+    .detail-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* Keyboard hints */
+    .keyboard-hints {
+      display: flex; justify-content: center;
+      gap: 16px; margin-top: 48px; flex-wrap: wrap;
+    }
+
+    .kbd-hint {
+      display: flex; align-items: center;
+      gap: 6px; font-size: 0.72rem; color: var(--text-dim);
+    }
+
+    kbd {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 22px; height: 22px; padding: 0 5px;
+      border-radius: 6px; border: 1px solid var(--border);
+      background: var(--surface-solid); font-size: 0.65rem;
+      font-family: inherit; color: var(--text-muted);
+    }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); grid-column: 1/-1; }
+    .empty-state svg { margin-bottom: 16px; opacity: 0.3; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+    /* Responsive */
+    @media (max-width: 850px) {
+      .bento-grid { columns: 2; }
+    }
+
+    @media (max-width: 550px) {
+      .app { padding: 20px 14px 60px; }
+      .header h1 { font-size: 1.6rem; }
+      .bento-grid { columns: 1; }
+      .detail-content { padding: 24px; }
+      .detail-title { font-size: 1.2rem; }
+      .detail-nav { padding: 12px 24px 20px; }
+      .keyboard-hints { display: none; }
+      .top-bar { gap: 6px; }
+      .toggle-btn { padding: 6px 10px; font-size: 0.72rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="glow glow-3"></div>
+
+  <div class="app">
+    <div class="top-bar">
+      <div class="toggle-group" id="lang-toggle">
+        <button class="toggle-btn active" data-lang="en">EN</button>
+        <button class="toggle-btn" data-lang="mm">MM</button>
+      </div>
+      <div class="toggle-group" id="theme-toggle">
+        <button class="toggle-btn active" data-theme="dark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="toggle-btn" data-theme="light">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <header class="header">
+      <h1 id="main-title"></h1>
+      <p id="main-subtitle"></p>
+      <div class="stats">
+        <span class="stat"><span class="stat-num" id="card-count">0</span> <span id="stat-cards"></span></span>
+        <span class="stat"><span class="stat-num" id="tag-count">0</span> <span id="stat-topics"></span></span>
+      </div>
+    </header>
+
+    <div class="search-bar">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search" autocomplete="off">
+    </div>
+
+    <div class="bento-grid" id="card-list"></div>
+  </div>
+
+  <!-- Detail overlay -->
+  <div class="detail-overlay" id="detail-overlay">
+    <div class="detail-card" id="detail-card">
+      <div class="detail-gradient-bar" id="detail-gradient-bar"></div>
+      <button class="detail-close" id="detail-close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <div class="detail-content" id="detail-content"></div>
+      <div class="detail-nav">
+        <button class="detail-nav-btn" id="prev-btn"></button>
+        <button class="detail-nav-btn" id="next-btn"></button>
+      </div>
+      <div class="keyboard-hints" id="keyboard-hints"></div>
+    </div>
+  </div>
+
+  <!-- CARDS-DATA-START -->
+  <script>
+const cardFiles = [
+  {
+    "title": {
+      "en": "Affordance vs. Signifier",
+      "mm": "Affordance နဲ့ Signifier ကွာခြားချက်"
+    },
+    "question": {
+      "en": "What is the difference between an Affordance and a Signifier in design?",
+      "mm": "Design မှာ Affordance နဲ့ Signifier ဘယ်လိုကွာတာလဲ?"
+    },
+    "answer": {
+      "en": "An affordance is what an object allows you to do — the possible actions. A signifier is a clue that tells you WHERE and HOW to do it. Affordances determine what's possible; signifiers communicate how to use it.",
+      "mm": "Affordance က အဲ့ဒီ အရာနဲ့ ဘာလုပ်လို့ရလဲ ဆိုတာ။ Signifier က ဘယ်နေရာမှာ ဘယ်လို လုပ်ရမလဲ ပြတဲ့ အရိပ်အမြွက်။ Affordance က ဖြစ်နိုင်တာကို ဆုံးဖြတ်တယ်၊ signifier က သုံးနည်းကို ပြောပြတယ်။"
+    },
+    "why": {
+      "en": "- Don Norman introduced these in \"The Design of Everyday Things\"\n- Touchscreen affords touching everywhere — that's the affordance\n- A button shape says \"tap here\" — that's the signifier\n- Signifiers are actually more important because they communicate the design to users\n- When signifiers are good, users never have to wonder \"how do I use this?\"",
+      "mm": "- Don Norman က \"The Design of Everyday Things\" မှာ ပြောခဲ့တာ\n- Touchscreen ကို ဘယ်နေရာမဆို ထိလို့ရတယ် — အဲ့ဒါက affordance\n- Button ပုံစံက \"ဒီမှာ ထိပါ\" လို့ ညွှန်ပြတယ် — အဲ့ဒါက signifier\n- Signifier က ပိုအရေးကြီးတယ်၊ user ကို ပြောပြတာ signifier ဖြစ်လို့\n- Signifier ကောင်းရင် \"ဒါ ဘယ်လိုသုံးရမလဲ\" မတွေးရတော့ဘူး"
+    },
+    "examples": {
+      "en": [
+        "A door handle affords pulling; a flat plate signifies pushing",
+        "A button shape on screen signifies \"clickable\" (the affordance is the whole touchscreen)",
+        "Underlined blue text signifies a link on the web",
+        "A scrollbar signifies that more content exists below"
+      ],
+      "mm": [
+        "တံခါးလက်ကိုင် ဆွဲလို့ရတယ် (affordance)၊ ပြားချပ်ကတော့ တွန်းပါလို့ ပြတယ် (signifier)",
+        "Screen ပေါ်က button ပုံစံက \"နှိပ်လို့ရတယ်\" လို့ ပြတယ်",
+        "အပြာရောင် underline စာက \"ဒါ link ပါ\" လို့ ပြတယ်",
+        "Scrollbar ပေါ်လာရင် \"အောက်မှာ ရှိသေးတယ်\" ဆိုတာ သိတယ်"
+      ]
+    },
+    "tags": [
+      "affordance",
+      "signifier",
+      "don-norman",
+      "discoverability",
+      "interaction-design"
+    ]
+  },
+  {
+    "title": {
+      "en": "Chunking & Miller's Law",
+      "mm": "Chunking နဲ့ Miller ၏ ဥပဒေ"
+    },
+    "question": {
+      "en": "What is Chunking and how does Miller's Law relate to UI design?",
+      "mm": "Chunking ဆိုတာ ဘာလဲ၊ Miller ၏ ဥပဒေက UI design နဲ့ ဘယ်လို ဆက်စပ်တာလဲ?"
+    },
+    "answer": {
+      "en": "Chunking is grouping related information into small, manageable clusters. Miller's Law suggests our working memory can hold about 4 items at a time. By chunking content, designers reduce cognitive load and help users process information faster.",
+      "mm": "ဆက်စပ်တဲ့ info တွေကို အစုလေးတွေ ခွဲထုတ်တာ။ Miller ရဲ့ ဥပဒေက ဦးနှောက်ရဲ့ working memory မှာ item ၄ ခုလောက်ပဲ ကိုင်ထားနိုင်တယ်လို့ ဆိုတယ်။ Chunk ခွဲပေးရင် ဦးနှောက် ပိုမြန်မြန် process လုပ်နိုင်တယ်။"
+    },
+    "why": {
+      "en": "- George Miller (1956): short-term memory holds 5-9 items\n- Later research (Baddeley/Cowan): revised down to about 4 items\n- Phone numbers: 10 digits chunked into 3 groups (712-569-4532)\n- 1-3 items per category → 100% recall; 4-6 items → 80%\n- 32 products in chunked grid don't feel overwhelming",
+      "mm": "- George Miller (1956) က short-term memory မှာ ၅ ခုကနေ ၉ ခု ထိ မှတ်ထားနိုင်တယ်လို့ ဆိုတယ်\n- နောက်ပိုင်း Baddeley/Cowan ရဲ့ research က ၄ ခုလောက်ပဲလို့ ပြင်တယ်\n- ဖုန်းနံပါတ်ကို 7125694532 ဆိုပြီး မမှတ်ဘဲ 712-569-4532 ဆိုပြီး အစု ၃ ခု ခွဲလိုက်တာ\n- Category တစ်ခုမှာ ၁-၃ ခု ဆို 100% မှတ်မိတယ်၊ ၄-၆ ခု ဖြစ်ရင် 80% ပဲ ကျန်တော့တယ်\n- Product ၃၂ ခု ရှိပေမယ့် grid ထဲ chunk ခွဲထားရင် overwhelming မဖြစ်ဘူး"
+    },
+    "examples": {
+      "en": [
+        "Phone numbers formatted as 712-569-4532 instead of 7125694532",
+        "E-commerce product grids grouping items into visual clusters",
+        "Breaking a long registration form into Step 1, Step 2, Step 3",
+        "Navigation menus with categorized groups instead of flat lists"
+      ],
+      "mm": [
+        "ဖုန်းနံပါတ်ကို 7125694532 မဟုတ်ဘဲ 712-569-4532 ဆိုပြီး ခွဲရေးတယ်",
+        "E-commerce မှာ product တွေကို grid ထဲ အစုလေးတွေ ခွဲပြတယ်",
+        "Form ရှည်ကြီးကို Step 1, 2, 3 ခွဲလိုက်တယ်",
+        "Navigation menu ကို flat list မဟုတ်ဘဲ category စုပြီး ခွဲထားတယ်"
+      ]
+    },
+    "tags": [
+      "chunking",
+      "millers-law",
+      "working-memory",
+      "cognitive-load",
+      "information-architecture"
+    ]
+  },
+  {
+    "title": {
+      "en": "Color Contrast & Accessibility",
+      "mm": "Color Contrast နဲ့ Accessibility (အရောင်ခြားနားမှုနဲ့ လက်လှမ်းမီမှု)"
+    },
+    "question": {
+      "en": "Why is color contrast important for accessibility?",
+      "mm": "Accessibility အတွက် color contrast က ဘာကြောင့် အရေးကြီးတာလဲ?"
+    },
+    "answer": {
+      "en": "Good color contrast ensures text and UI elements are readable for all users — including those with color blindness, low vision, or using devices in bright sunlight. It's the most basic and impactful accessibility measure.",
+      "mm": "Color contrast ကောင်းရင် user အားလုံး — colorblind, မျက်စိအားနည်း သို့မဟုတ် နေပူထဲ ဖုန်းကြည့်နေသူတွေ အပါအဝင် — ဖတ်နိုင်တယ်။ Accessibility အတွက် အခြေခံဆုံးနဲ့ အထိရောက်ဆုံး။"
+    },
+    "why": {
+      "en": "- WCAG has 2 standards: AA (minimum) and AAA (better)\n- Body text needs 4.5:1 ratio (AA); large text 18pt+ needs 3:1\n- 1 in 12 men are colorblind — can't rely on color alone for info\n- Inclusive design benefits ALL users, not just disabled users\n- Test on real devices — looks fine on laptop doesn't mean fine on phone",
+      "mm": "- WCAG standard ၂ ခုရှိတယ် — AA (အနည်းဆုံး) နဲ့ AAA (ပိုကောင်း)\n- Body text: 4.5:1 ratio လို၊ Large text (18pt+): 3:1 ratio လိုတယ်\n- အမျိုးသား ၁၂ ယောက်မှာ ၁ ယောက် colorblind — အရောင်တစ်ခုတည်းနဲ့ info ပေးလို့ မရဘူး\n- Inclusive design က disabled user ပဲ မဟုတ်ဘူး user အားလုံးကို ကောင်းစေတယ်\n- Laptop ပေါ်မှာ ကောင်းပေမယ့် ဖုန်းပေါ် မကောင်းနိုင်ဘူး — တကယ့် device ပေါ်မှာ test လုပ်"
+    },
+    "examples": {
+      "en": [
+        "Colour Contrast Analyser tool for checking AA/AAA compliance",
+        "Using icons + color together (not color alone) for status indicators",
+        "Dark text on light background for body copy",
+        "Testing designs on actual devices in non-ideal lighting"
+      ],
+      "mm": [
+        "Colour Contrast Analyser tool နဲ့ AA/AAA ပြည့်မပြည့် စစ်တယ်",
+        "Status indicator မှာ အရောင်ပဲ မဟုတ်ဘဲ icon လေးပါ ထည့်ပေးတယ်",
+        "Body copy မှာ light background ပေါ် dark text သုံးတယ်",
+        "တကယ့် device ပေါ်မှာ နေရောင်ထဲ ထိုင်ပြီး test လုပ်တယ်"
+      ]
+    },
+    "tags": [
+      "accessibility",
+      "color-contrast",
+      "WCAG",
+      "inclusive-design",
+      "color-blindness"
+    ]
+  },
+  {
+    "title": {
+      "en": "Error Prevention",
+      "mm": "Error Prevention (အမှားကြိုတင်ကာကွယ်ခြင်း)"
+    },
+    "question": {
+      "en": "What is Error Prevention in UX and how does it differ from error recovery?",
+      "mm": "UX မှာ Error Prevention ဆိုတာ ဘာလဲ၊ error recovery နဲ့ ဘယ်လိုကွာတာလဲ?"
+    },
+    "answer": {
+      "en": "Error Prevention means designing systems so users can't make mistakes in the first place, rather than relying on error messages after the mistake. Prevention is always better than recovery.",
+      "mm": "User မှားပြီးမှ error message ပြမယ့်အစား မှားလို့ မရအောင် system ကိုပဲ ဒီဇိုင်းဆွဲတာ။ Recovery ထက် prevention က အမြဲ ပိုကောင်းတယ်။"
+    },
+    "why": {
+      "en": "- Don Norman: 2 types of errors — slips (unintended actions) and mistakes (wrong understanding)\n- Slips can be prevented with constraints and undo features\n- Mistakes can be prevented with confirmation dialogs and clear feedback\n- Preventing errors uses less cognitive load than fixing them after\n- \"Swiss cheese model\": more safety layers = less chance errors get through",
+      "mm": "- Don Norman: error ၂ မျိုးရှိတယ် — slips (မှတ်မထင် လွဲ) နဲ့ mistakes (နားလည်မှု မှားတာ)\n- Slips ကို constraints နဲ့ undo feature နဲ့ ကာကွယ်လို့ရတယ်\n- Mistakes ကို confirmation dialog နဲ့ feedback ကောင်းကောင်းပေးပြီး ကာကွယ်\n- Error message ပြပြီး ပြင်ခိုင်းတာထက် error မဖြစ်အောင်လုပ်တာ ဦးနှောက် ပိုသက်သာတယ်\n- Safety layer ပိုများလေ error ဖြတ်သွားနိုင်ခြေ နည်းလေ"
+    },
+    "examples": {
+      "en": [
+        "Graying out unavailable dates in a date picker",
+        "\"Are you sure you want to delete?\" confirmation dialogs",
+        "Gmail's \"Undo Send\" giving 30 seconds to cancel",
+        "Form validation showing errors in real-time as you type"
+      ],
+      "mm": [
+        "Date picker မှာ မရတဲ့ ရက်တွေကို gray ထားတယ်",
+        "\"ဖျက်မှာ သေချာလား?\" ဆိုတဲ့ confirmation dialog ပေါ်လာတယ်",
+        "Gmail မှာ \"Undo Send\" နှိပ်ရင် ၃၀ စက္ကန့်အတွင်း cancel လုပ်လို့ရတယ်",
+        "Form ဖြည့်နေတုန်း error ကို real-time ချက်ချင်း ပြတယ်"
+      ]
+    },
+    "tags": [
+      "error-prevention",
+      "constraints",
+      "undo",
+      "confirmation",
+      "usability",
+      "don-norman"
+    ]
+  },
+  {
+    "title": {
+      "en": "F-Pattern & Z-Pattern",
+      "mm": "F-Pattern နဲ့ Z-Pattern (မျက်လုံးလှုပ်ရှားမှုပုံစံများ)"
+    },
+    "question": {
+      "en": "What are the F-Pattern and Z-Pattern in web design?",
+      "mm": "Web design မှာ F-Pattern နဲ့ Z-Pattern ဆိုတာ ဘာတွေလဲ?"
+    },
+    "answer": {
+      "en": "F-Pattern and Z-Pattern are the natural eye movement paths users follow when scanning web pages. F-Pattern happens on text-heavy pages; Z-Pattern happens on open, visual pages.",
+      "mm": "User တွေ web page ကြည့်ရင် မျက်လုံးက သဘာဝအတိုင်း သွားတဲ့ လမ်းကြောင်းတွေ။ F-Pattern က စာများတဲ့ page မှာ ဖြစ်တယ်၊ Z-Pattern က ပုံတွေ space တွေ များတဲ့ page မှာ ဖြစ်တယ်။"
+    },
+    "why": {
+      "en": "- Eye tracking studies show user scanning patterns are predictable\n- F-Pattern: scan across → go down left side → scan again if something catches the eye\n- Z-Pattern: scan right → diagonal to bottom-left → scan right again → zigzag continues\n- Knowing these helps you place key content exactly where users will look",
+      "mm": "- Eye tracking study တွေက user ကြည့်ပုံကို ကြိုတင်ခန့်မှန်းလို့ရကြောင်း ပြတယ်\n- F-Pattern: အပေါ်တန်း ဖတ် → ဘယ်ဘက်ကပ်ပြီး ဆင်း → စိတ်ဝင်စားတာတွေ့ရင် ထပ် ဖတ်\n- Z-Pattern: ညာဘက် scan → ဘယ်အောက်ထောင့် ကူး → ညာဘက် ထပ် scan → zigzag ဆက်\n- ဒါတွေ သိရင် CTA, heading, key info ကို user မြင်မယ့် နေရာမှာ တိတိကျကျ ချထားလို့ရတယ်"
+    },
+    "examples": {
+      "en": [
+        "Blog posts placing key info in the first two lines of each paragraph (F-pattern)",
+        "Landing pages placing logo top-left, CTA top-right, content bottom-left (Z-pattern)",
+        "News sites with headlines aligned left for easy F-pattern scanning",
+        "Marketing pages with zigzag image-text alternating layout"
+      ],
+      "mm": [
+        "Blog post မှာ paragraph ရဲ့ ပထမ ၂ ကြောင်းမှာ key info ထည့်ထားတယ် (F-pattern)",
+        "Landing page မှာ logo ဘယ်အပေါ်၊ CTA ညာအပေါ်မှာ ထားတယ် (Z-pattern)",
+        "News site မှာ headline တွေကို ဘယ်ဘက် ကပ်ထားတယ်",
+        "Marketing page မှာ ပုံနဲ့ စာကို zigzag ပုံစံ တလှည့်စီ ချထားတယ်"
+      ]
+    },
+    "tags": [
+      "f-pattern",
+      "z-pattern",
+      "eye-tracking",
+      "layout",
+      "scanning",
+      "visual-hierarchy"
+    ]
+  },
+  {
+    "title": {
+      "en": "Feedback in Design",
+      "mm": "Design မှာ Feedback (တုံ့ပြန်ချက်)"
+    },
+    "question": {
+      "en": "Why is feedback essential in interaction design?",
+      "mm": "Interaction design မှာ feedback က ဘာကြောင့် မရှိမဖြစ် လိုအပ်တာလဲ?"
+    },
+    "answer": {
+      "en": "Feedback tells users what just happened after they take an action. It confirms whether a task was successful, failed, or is in progress. Without feedback, users feel lost and uncertain.",
+      "mm": "User က action တစ်ခု လုပ်ပြီးရင် ဘာဖြစ်သွားလဲ ပြောပြတာ။ အောင်မြင်လား၊ fail ဖြစ်လား၊ loading ဖြစ်နေသေးလား ပြောပြတယ်။ Feedback မရှိရင် user က ဘာဖြစ်နေလဲ မသိဘဲ ရပ်နေရတယ်။"
+    },
+    "why": {
+      "en": "- One of Don Norman's 7 fundamental design principles\n- Best response time: as immediate as possible — within 0.1 seconds\n- Long operations → show progress bars + time estimates\n- Great feedback can turn negative into positive (Hootsuite owl sleeping)\n- Lag kills momentum — like playing guitar with delayed notes",
+      "mm": "- Don Norman ရဲ့ design အခြေခံမူ ၇ ခုထဲက တစ်ခု\n- တုံ့ပြန်ချိန် တတ်နိုင်သမျှ ချက်ချင်း ဖြစ်ရတယ် — 0.1 စက္ကန့်အတွင်း\n- ကြာတဲ့ task ဆို progress bar နဲ့ ခန့်မှန်းချိန် ပြပေးရတယ်\n- Feedback ကောင်းရင် စိတ်ညစ်စရာကို ပျော်စရာ ပြောင်းနိုင်တယ် — Hootsuite ရဲ့ ဇီးကွက် \"အိပ်သွားတာ\" လို\n- Lag ရှိရင် user ရဲ့ momentum ပျက်တယ် — guitar တီးပြီး note နောက်ကျမှ ထွက်လာသလိုမျိုး"
+    },
+    "examples": {
+      "en": [
+        "Button color change on click to confirm the action",
+        "Loading spinner or progress bar during file uploads",
+        "Success/error toast messages after form submission",
+        "Hootsuite's owl animation sleeping during inactivity"
+      ],
+      "mm": [
+        "Button နှိပ်ရင် အရောင်ပြောင်းပြီး \"လုပ်ပြီးပြီ\" ဆိုတာ ပြတယ်",
+        "File upload နေတုန်း loading spinner ပတ်နေတယ်",
+        "Form submit ပြီးရင် \"အောင်မြင်ပါတယ်\" / \"မှားနေပါတယ်\" toast ပေါ်လာတယ်",
+        "Hootsuite မှာ user ဘာမှ မလုပ်ဘဲ ကြာရင် ဇီးကွက်လေး အိပ်သွားတယ်"
+      ]
+    },
+    "tags": [
+      "feedback",
+      "response-time",
+      "microinteraction",
+      "animation",
+      "usability"
+    ]
+  },
+  {
+    "title": {
+      "en": "Fitts's Law",
+      "mm": "Fitts ၏ ဥပဒေ"
+    },
+    "question": {
+      "en": "What is Fitts's Law and how does it apply to UI design?",
+      "mm": "Fitts ၏ ဥပဒေဆိုတာ ဘာလဲ၊ UI design မှာ ဘယ်လိုအသုံးချလဲ?"
+    },
+    "answer": {
+      "en": "Fitts's Law says that the time to reach a target depends on the distance to it and its size. The bigger and closer a target is, the faster and easier it is to click or tap on it.",
+      "mm": "Fitts ၏ ဥပဒေက target တစ်ခုကို ရောက်ဖို့ ကြာချိန်ဟာ အကွာအဝေးနဲ့ အရွယ်အစားပေါ် မူတည်တယ်လို့ ဆိုတယ်။ ကြီးလေ နီးလေ နှိပ်ရတာ လွယ်လေပဲ။"
+    },
+    "why": {
+      "en": "- Paul Fitts discovered this in 1954 through studying human movement\n- Make primary buttons bigger, make the whole button area clickable\n- Place related functions close together\n- Especially important for mobile — finger taps are less precise than mouse\n- Dangerous actions like \"delete\" should be smaller and harder to reach",
+      "mm": "- 1954 မှာ Paul Fitts ဆိုတဲ့ သုတေသီက လူတွေ လက်လှုပ်ရှားပုံကို လေ့လာပြီး တွေ့ခဲ့တာ\n- အဓိက button တွေကို ကြီးကြီးလုပ်၊ စာပဲ မဟုတ်ဘဲ button ခုလုံး နှိပ်လို့ရအောင်လုပ်\n- တွဲသုံးတဲ့ function တွေကို နီးနီးချထား\n- Mobile မှာ ပိုသတိထား — လက်ချောင်းနဲ့ ထိတာက mouse လောက် တိကျမှု မရှိဘူး\n- ဖျက်မယ့် button တွေကိုတော့ သေးသေးလေးနဲ့ ဝေးဝေးလေးထား၊ မှားမနှိပ်မိအောင်"
+    },
+    "examples": {
+      "en": [
+        "Large call-to-action buttons on landing pages",
+        "Making the entire button clickable, not just the text label",
+        "Grouping related actions close together (like Copy, Print, Send)",
+        "Making destructive actions like \"Delete\" small and far from common actions"
+      ],
+      "mm": [
+        "Landing page မှာ CTA button ကို ကြီးကြီးထားတယ်",
+        "စာတိုင်မဟုတ်ဘဲ button တစ်ခုလုံး နှိပ်လို့ရအောင် လုပ်ထားတယ်",
+        "Copy, Print, Send တို့လို ဆက်စပ်တာတွေကို အနီးနားချင်း စုထားတယ်",
+        "Delete button ကို သေးသေးလေးနဲ့ ဝေးဝေးမှာ ထားတယ်"
+      ]
+    },
+    "tags": [
+      "fitts-law",
+      "interaction-design",
+      "usability",
+      "button-design",
+      "mobile-design"
+    ]
+  },
+  {
+    "title": {
+      "en": "Gestalt Principle: Closure",
+      "mm": "Gestalt အခြေခံမူ: Closure (ပိတ်ဆို့ခြင်း)"
+    },
+    "question": {
+      "en": "What is the Gestalt Principle of Closure?",
+      "mm": "Gestalt ရဲ့ Closure အခြေခံမူဆိုတာ ဘာလဲ?"
+    },
+    "answer": {
+      "en": "The brain automatically fills in missing parts of a shape or pattern to perceive a complete whole. Even incomplete visuals are seen as finished objects if enough visual clues exist.",
+      "mm": "ပုံသဏ္ဍာန်ရဲ့ ပျောက်နေတဲ့ အပိုင်းတွေကို ဦးနှောက်က အလိုအလျောက် ဖြည့်ပြီး ပြည့်စုံတဲ့ အရာအဖြစ် မြင်တယ်။ Visual clue လုံလောက်ရင် မပြည့်စုံတဲ့ ပုံကိုပဲ ပြည့်စုံပုံ မြင်တယ်။"
+    },
+    "why": {
+      "en": "- The brain avoids complexity and looks for the simplest interpretation\n- Powerful in logo design — don't need to draw everything, the brain fills gaps\n- Creates sense of continuation in loading indicators and progress bars\n- Enables minimalist design — say more with fewer elements",
+      "mm": "- ဦးနှောက်က ရှုပ်ထွေးမှုကို ရှောင်ပြီး အရိုးဆုံး အဓိပ္ပာယ်ကို ရှာတယ်\n- Logo design မှာ အစွမ်းထက်တယ် — အကုန် မဆွဲရဘဲ ဦးနှောက်ကိုယ်တိုင် ဖြည့်ပေးတယ်\n- Loading indicator, progress bar တွေမှာ \"ဆက်လာမယ်\" ဆိုတဲ့ ခံစားချက် ပေးတယ်\n- Element နည်းနည်းနဲ့ message ပြည့်ပြည့် ပေးနိုင်တယ် — minimalist design ဖြစ်နိုင်"
+    },
+    "examples": {
+      "en": [
+        "IBM logo made of horizontal lines — brain sees complete letters",
+        "WWF panda logo with missing outline — brain fills the gaps",
+        "Circular progress bars implying completion",
+        "Card designs with partially visible next card (implies scrollable content)"
+      ],
+      "mm": [
+        "IBM logo က ရေပြင်ညီ lines နဲ့ ဆွဲထားတယ် — ဦးနှောက်က letter ပြည့်ပြည့် မြင်တယ်",
+        "WWF panda logo မှာ outline ပြတ်နေပေမယ့် ဦးနှောက်က ဖြည့်ပြီး မြင်တယ်",
+        "Circular progress bar က \"ပြီးတော့မယ်\" ဆိုတဲ့ ခံစားချက် ပေးတယ်",
+        "Card design မှာ နောက် card တစ်ဝက်လောက် မြင်ရတာက \"scroll ဆက်လုပ်\" ဆိုတာ ပြတယ်"
+      ]
+    },
+    "tags": [
+      "gestalt",
+      "closure",
+      "perception",
+      "logo-design",
+      "minimalism"
+    ]
+  },
+  {
+    "title": {
+      "en": "Gestalt Principle: Similarity",
+      "mm": "Gestalt အခြေခံမူ: Similarity (တူညီမှု)"
+    },
+    "question": {
+      "en": "What is the Gestalt Principle of Similarity?",
+      "mm": "Gestalt ရဲ့ Similarity အခြေခံမူဆိုတာ ဘာလဲ?"
+    },
+    "answer": {
+      "en": "Elements that share visual characteristics — like color, shape, size, or style — are perceived as belonging to the same group, even when they're physically separated.",
+      "mm": "အရောင်၊ ပုံသဏ္ဍာန်၊ အရွယ်အစား သို့မဟုတ် style တူတဲ့ element တွေကို ကွဲကွဲနေပေမယ့် \"တစုတည်း\" လို့ မြင်ကြတယ်။"
+    },
+    "why": {
+      "en": "- The brain automatically assumes visual similarity = related\n- Can show grouping without needing labels\n- Even more effective when combined with Proximity\n- Deliberate dissimilarity can grab attention too (breaking the pattern)",
+      "mm": "- ဦးနှောက်က ပုံစံတူရင် \"ဆက်စပ်တယ်\" လို့ အလိုအလျောက် ယူဆတယ်\n- Label မလိုဘဲ group ခွဲပြလို့ ရတယ်\n- Proximity (အနီးကပ်မှု) နဲ့ ပေါင်းရင် ပိုထိရောက်\n- တမင် pattern ချိုးပြီး ကွဲအောင်လုပ်ရင်လည်း attention ဆွဲလို့ ရတယ်"
+    },
+    "examples": {
+      "en": [
+        "All clickable links styled in the same blue color",
+        "Navigation items sharing the same font size and weight",
+        "A red \"Delete\" button standing out from gray action buttons (dissimilarity)",
+        "Dashboard cards with the same border radius and shadow style"
+      ],
+      "mm": [
+        "Click လို့ရတဲ့ link အကုန်လုံး အပြာရောင် style တူတယ်",
+        "Navigation item တွေ font size နဲ့ weight တူတူ သုံးထားတယ်",
+        "Gray button တွေထဲမှာ \"Delete\" ခလုတ်ကို အနီရောင်နဲ့ ကွဲထွက်စေတယ် (dissimilarity)",
+        "Dashboard card တွေ border radius နဲ့ shadow style တူတူ ဖြစ်နေတယ်"
+      ]
+    },
+    "tags": [
+      "gestalt",
+      "similarity",
+      "visual-design",
+      "grouping",
+      "perception"
+    ]
+  },
+  {
+    "title": {
+      "en": "Hick's Law",
+      "mm": "Hick ၏ ဥပဒေ"
+    },
+    "question": {
+      "en": "What is Hick's Law and why does it matter in design?",
+      "mm": "Hick ၏ ဥပဒေဆိုတာ ဘာလဲ၊ design မှာ ဘာကြောင့် အရေးကြီးတာလဲ?"
+    },
+    "answer": {
+      "en": "Hick's Law states that the time it takes to make a decision increases as the number of choices grows. More options means slower decisions and more mental effort for users.",
+      "mm": "ရွေးစရာ များလေ ဆုံးဖြတ်ဖို့ ကြာလေ ဖြစ်တယ်။ ရွေးစရာ ပိုများရင် user တွေ ပိုစဉ်းစားရတယ်၊ ပိုပင်ပန်းတယ်။"
+    },
+    "why": {
+      "en": "- William Edmund Hick proved this in 1951\n- Limit navigation options to only what's needed\n- Hide advanced options until relevant\n- Break complex decisions into smaller steps\n- Applies to ALL content decisions on screen, not just menus",
+      "mm": "- 1951 မှာ William Edmund Hick ဆိုတဲ့ စိတ်ပညာရှင်က သက်သေပြခဲ့တယ်\n- Navigation မှာ လိုတာပဲ ပြ၊ မလိုတာ မပြနဲ့\n- Advanced option တွေကို လိုမှပဲ ထုတ်ပြ\n- ရှုပ်တဲ့ ဆုံးဖြတ်ချက်ကြီးကို အဆင့်လေးတွေ ခွဲပေးလိုက်\n- Menu ပဲမဟုတ်ဘူး — screen ပေါ်က element တိုင်းက user အတွက် ရွေးရမယ့် choice တစ်ခုပဲ"
+    },
+    "examples": {
+      "en": [
+        "Limiting main navigation to 5-7 items",
+        "Amazon's progressive category menu revealing subcategories step by step",
+        "Breaking checkout into multiple simple steps instead of one long form",
+        "Hiding advanced settings behind a \"More Options\" toggle"
+      ],
+      "mm": [
+        "Navigation ကို ၅-၇ ခုပဲ ထားတယ်",
+        "Amazon က category တွေကို တစ်ဆင့်ပြီးတစ်ဆင့် ခွဲပြတယ်",
+        "Checkout ကို form ရှည်ကြီးတစ်ခုမဟုတ်ဘဲ step လေးတွေ ခွဲတယ်",
+        "Advanced settings ကို \"More Options\" နောက်မှာ ဖွက်ထားတယ်"
+      ]
+    },
+    "tags": [
+      "hicks-law",
+      "decision-making",
+      "simplicity",
+      "navigation",
+      "cognitive-load"
+    ]
+  },
+  {
+    "title": {
+      "en": "The Hook Model",
+      "mm": "Hook Model (အလေ့အထဖြစ်စေသော ပုံစံ)"
+    },
+    "question": {
+      "en": "What is the Hook Model and what are its four phases?",
+      "mm": "Hook Model ဆိုတာ ဘာလဲ၊ အဆင့် ၄ ဆင့် ဘာတွေလဲ?"
+    },
+    "answer": {
+      "en": "The Hook Model is a framework by Nir Eyal for building habit-forming products. Its four phases are: Trigger (what prompts the user), Action (simplest behavior), Variable Reward (unpredictable payoff), and Investment (user puts something in).",
+      "mm": "Nir Eyal ရဲ့ habit ဖြစ်စေတဲ့ product တည်ဆောက်ဖို့ framework။ အဆင့် ၄ ခု: Trigger (လှုံ့ဆော်တာ)၊ Action (အလွယ်ဆုံး behavior)၊ Variable Reward (မထင်မှတ်ထားတဲ့ ဆုလာဘ်)၊ Investment (user က တစ်ခုခု ထည့်တာ)။"
+    },
+    "why": {
+      "en": "- Trigger: external (notification, email) → internal (bored, curious) over time\n- Action: motivation + ability combined → must be the easiest possible behavior\n- Variable Reward: unpredictable payoff creates craving (slot machine effect)\n- Investment: the more users put in (data, content, followers), the harder it is to leave\n- Repeat this cycle enough times and it becomes a habit",
+      "mm": "- Trigger: အရင်က notification လို external trigger ကနေ နောက်ဆုံး ပျင်းတာ/စိတ်ဝင်စားတာလို internal trigger ဖြစ်လာတယ်\n- Action: motivation နဲ့ ability ပေါင်းပြီး တတ်နိုင်သမျှ လွယ်ဆုံး action ဖြစ်ရမယ်\n- Variable Reward: ဘာရမယ် ကြိုမသိရတာက \"ထပ်ကြည့်ချင်တယ်\" ဆိုတဲ့ craving ဖြစ်စေတယ် — slot machine effect\n- Investment: data, content, followers ထည့်ထားလေ ထွက်ခဲ့လေ\n- ဒီ cycle ထပ်ခါထပ်ခါ ပတ်ရင် habit ဖြစ်လာတယ်"
+    },
+    "examples": {
+      "en": [
+        "Instagram: bored (trigger) → open app (action) → new likes/posts (variable reward) → post photo (investment)",
+        "Pinterest: see interesting pin (trigger) → click (action) → discover related pins (reward) → save pins (investment)",
+        "Email: notification (trigger) → check inbox (action) → new messages (reward) → reply (investment)"
+      ],
+      "mm": [
+        "Instagram: ပျင်းတယ် → app ဖွင့် → like/post အသစ်တွေ ရှိတယ် → ဓာတ်ပုံတင်",
+        "Pinterest: pin စိတ်ဝင်စားတယ် → နှိပ်ကြည့် → ဆက်စပ် pin တွေ တွေ့ → pin save လုပ်",
+        "Email: notification လာတယ် → inbox ကြည့် → message အသစ် ရှိတယ် → reply ပြန်"
+      ]
+    },
+    "tags": [
+      "hook-model",
+      "habit-forming",
+      "variable-reward",
+      "trigger",
+      "engagement",
+      "nir-eyal"
+    ]
+  },
+  {
+    "title": {
+      "en": "Mental Models",
+      "mm": "Mental Models (စိတ်ပိုင်းဆိုင်ရာ ပုံစံများ)"
+    },
+    "question": {
+      "en": "What are Mental Models and why do they matter in UX?",
+      "mm": "Mental Models ဆိုတာ ဘာတွေလဲ၊ UX မှာ ဘာကြောင့် အရေးကြီးတာလဲ?"
+    },
+    "answer": {
+      "en": "Mental models are the beliefs and expectations users already have about how things work. When your design matches users' mental models, it feels intuitive. When it doesn't, users get confused.",
+      "mm": "User တွေမှာ အရာတွေ ဘယ်လိုအလုပ်လုပ်တယ်ဆိုတဲ့ ယုံကြည်ချက်နဲ့ မျှော်လင့်ချက် ရှိပြီးသားရှိတယ်။ Design က အဲ့ဒါနဲ့ ကိုက်ရင် intuitive ခံစားရတယ်။ မကိုက်ရင် ရှုပ်သွားတယ်။"
+    },
+    "why": {
+      "en": "- Users build schemas (knowledge frameworks) from past experience\n- Don Norman: conceptual model (designer's intent) must match mental model (user's understanding)\n- Info that fits existing schemas is much easier to learn\n- Discoverable design helps build correct mental models\n- Without user research, guessing mental models often goes wrong",
+      "mm": "- User တွေ အရင် experience ကနေ schema (ဗဟုသုတ ဘောင်) ဆောက်ထားကြတယ်\n- Don Norman: conceptual model (designer ရည်ရွယ်တာ) နဲ့ mental model (user နားလည်တာ) ကိုက်ညီရမယ်\n- ရှိပြီးသား schema ထဲ ကိုက်တဲ့ info က သင်ယူရတာ အများကြီး လွယ်တယ်\n- ရှာဖွေလို့ ရတဲ့ (discoverable) design က mental model မှန်မှန် ဆောက်ပေးတယ်\n- User research မလုပ်ဘဲ mental model ကို ခန့်မှန်းရင် တော်တော်များများ မှားတယ်"
+    },
+    "examples": {
+      "en": [
+        "Shopping cart icon on e-commerce (everyone knows what it means)",
+        "Hamburger menu icon for navigation on mobile",
+        "Swipe to delete on iOS (matches physical \"push away\" mental model)",
+        "Folder/file metaphor in operating systems"
+      ],
+      "mm": [
+        "E-commerce မှာ shopping cart icon — လူတိုင်း ဘာလဲ သိတယ်",
+        "Mobile navigation မှာ hamburger menu icon",
+        "iOS မှာ swipe to delete — ပစ္စည်းကို လက်နဲ့ \"တွန်းဖယ်\" တာနဲ့ တူတယ်",
+        "Computer မှာ folder/file ပုံစံ — တကယ့် ဖိုင်တွဲ/စာရွက်နဲ့ တူအောင် လုပ်ထားတာ"
+      ]
+    },
+    "tags": [
+      "mental-model",
+      "conceptual-model",
+      "schema",
+      "user-research",
+      "don-norman"
+    ]
+  },
+  {
+    "title": {
+      "en": "Microinteractions",
+      "mm": "Microinteractions (Micro အပြန်အလှန်တုံ့ပြန်မှု)"
+    },
+    "question": {
+      "en": "What are Microinteractions and why do they matter?",
+      "mm": "Microinteractions ဆိုတာ ဘာတွေလဲ၊ ဘာကြောင့် အရေးကြီးတာလဲ?"
+    },
+    "answer": {
+      "en": "Microinteractions are small, contained animations or responses triggered by a single user action. They provide instant feedback, guide attention, and add personality to a product — turning ordinary moments into delightful ones.",
+      "mm": "User action တစ်ခုကြောင့် trigger ဖြစ်တဲ့ animation သေးသေးလေးတွေ / response လေးတွေ။ ချက်ချင်း feedback ပေးတယ်၊ attention ဆွဲတယ်၊ product ကို personality ထည့်ပေးတယ်။"
+    },
+    "why": {
+      "en": "- Structure: Trigger → Rules → Feedback → Loops & Modes\n- These tiny details define whether UX feels good or bad\n- Can turn negative experiences into positive ones (Hootsuite owl sleeping)\n- Flat design + animation = delight\n- Response must be instant — lag kills the feeling",
+      "mm": "- Structure ရှိတယ်: Trigger → Rules → Feedback → Loops & Modes\n- ဒီ detail သေးသေးလေးတွေက UX ကောင်းလား ဆိုးလား သတ်မှတ်တဲ့ အရာတွေ\n- စိတ်ညစ်စရာကို ပျော်စရာ ပြောင်းနိုင်တယ် — Hootsuite ရဲ့ ဇီးကွက် အိပ်သွားတာလို\n- Flat design နဲ့ animation ပေါင်းရင် delight ဖြစ်တယ်\n- ချက်ချင်း ဖြစ်ရမယ် — lag ရှိရင် ခံစားချက် ပျက်သွားတယ်"
+    },
+    "examples": {
+      "en": [
+        "Heart animation when liking a post on Instagram",
+        "Pull-to-refresh with a custom loading animation",
+        "Toggle switch sliding smoothly with color transition",
+        "Tumblr's sign-up form shaking when password is too short"
+      ],
+      "mm": [
+        "Instagram post like လုပ်ရင် heart animation ထွက်လာတယ်",
+        "Pull-to-refresh လုပ်ရင် loading animation လေး ပေါ်လာတယ်",
+        "Toggle switch ကို ချောချောမွေ့ပြီး အရောင်ပြောင်းသွားတယ်",
+        "Tumblr sign-up form မှာ password တိုရင် form ယိမ်းသွားတယ်"
+      ]
+    },
+    "tags": [
+      "microinteraction",
+      "animation",
+      "feedback",
+      "delight",
+      "flat-design"
+    ]
+  },
+  {
+    "title": {
+      "en": "Mobile-First Design",
+      "mm": "Mobile-First Design (Mobile ဦးစားပေး ဒီဇိုင်း)"
+    },
+    "question": {
+      "en": "What is Mobile-First Design and why is it recommended?",
+      "mm": "Mobile-First Design ဆိုတာ ဘာလဲ၊ ဘာကြောင့် recommend လုပ်တာလဲ?"
+    },
+    "answer": {
+      "en": "Mobile-First means designing for the smallest screen first, then progressively adding features and layout complexity for larger screens. It forces designers to focus on what truly matters.",
+      "mm": "Screen အသေးဆုံးအတွက် အရင် design ဆွဲပြီး screen ကြီးလာတာနဲ့ feature နဲ့ layout ထပ်ထည့်သွားတာ။ တကယ်အရေးကြီးတာကိုပဲ focus ချခိုင်းတယ်။"
+    },
+    "why": {
+      "en": "- Mobile traffic now exceeds desktop — mobile users come first\n- Desktop-first then shrinking for mobile means painful feature cutting\n- Mobile-first forces you to set clear content priorities\n- Better performance — load only essentials, enhance on desktop\n- Makes progressive disclosure feel natural",
+      "mm": "- Mobile traffic က desktop ကို ကျော်သွားပြီ — mobile user ကို ဦးစားပေးရမယ်\n- Desktop-first ဆွဲပြီး mobile အတွက် ချုံ့ရင် feature တွေ ဖျက်ရတာ နာကျင်တယ်\n- Mobile-first က content priority ကို ရှင်းရှင်းလင်းလင်း ချမှတ်ခိုင်းတယ်\n- Performance ပိုကောင်းတယ် — essential ပဲ load လုပ်ပြီး desktop မှာ enhance\n- Progressive disclosure ကိုလည်း သဘာဝကျကျ ဖြစ်စေတယ်"
+    },
+    "examples": {
+      "en": [
+        "Designing a single-column layout for mobile, expanding to multi-column on desktop",
+        "Hamburger menu on mobile that becomes a full nav bar on desktop",
+        "Touch-friendly 44px minimum tap targets on mobile",
+        "Hidden controls that reveal on hover (desktop) vs. always visible (mobile)"
+      ],
+      "mm": [
+        "Mobile single-column → desktop multi-column layout ဖြစ်သွားတယ်",
+        "Mobile မှာ hamburger menu → desktop မှာ nav bar အပြည့် ဖြစ်တယ်",
+        "Mobile မှာ tap target 44px အနည်းဆုံး ထားတယ် (လက်ချောင်းနဲ့ ထိရလွယ်အောင်)",
+        "Desktop မှာ hover မှ ပေါ်တာ → mobile မှာ အမြဲ မြင်ရအောင် ထားတယ်"
+      ]
+    },
+    "tags": [
+      "mobile-first",
+      "responsive-design",
+      "progressive-enhancement",
+      "content-priority"
+    ]
+  },
+  {
+    "title": {
+      "en": "Natural Mapping",
+      "mm": "Natural Mapping (သဘာဝ ပုံစံချိတ်ဆက်မှု)"
+    },
+    "question": {
+      "en": "What is Natural Mapping in design?",
+      "mm": "Design မှာ Natural Mapping ဆိုတာ ဘာလဲ?"
+    },
+    "answer": {
+      "en": "Natural Mapping is when the layout of controls matches the layout of the things they control. It uses spatial relationships so users immediately understand which control affects which element — no labels or instructions needed.",
+      "mm": "Control တွေရဲ့ နေရာချထားပုံက ထိန်းချုပ်တဲ့ အရာတွေရဲ့ နေရာနဲ့ ကိုက်ညီတာ။ ဘယ် control က ဘာကို ထိန်းတယ်ဆိုတာ label မလိုဘဲ ချက်ချင်း နားလည်တယ်။"
+    },
+    "why": {
+      "en": "- Don Norman: 3 levels of mapping effectiveness\n- Best: controls mounted directly on the item\n- Second: controls placed close to the item\n- Third: controls arranged in the same spatial pattern\n- Poor mapping (e.g., stove burners in grid, controls in row) → constant user errors",
+      "mm": "- Don Norman က mapping ထိရောက်မှု ၃ ဆင့် ပြောတယ်\n- အကောင်းဆုံး: control ကို item ပေါ်မှာ တိုက်ရိုက် ကပ်ထား\n- ဒုတိယ: item နားနီးနီးမှာ ချထား\n- တတိယ: item တွေရဲ့ pattern အတိုင်း control တွေကို စီထား\n- Mapping ညံ့ရင် user အမြဲ မှားမှားနှိပ်နေရတယ် — ဥပမာ မီးဖိုခွက်တွေ grid မှာ ဒါပေမယ့် ခလုတ်တွေ row မှာ"
+    },
+    "examples": {
+      "en": [
+        "Car seat adjustment control shaped like the seat itself",
+        "Light switches arranged in the same pattern as the room's lights",
+        "Volume slider going up for louder, down for quieter",
+        "Car window controls positioned matching the four windows' layout"
+      ],
+      "mm": [
+        "ကားထိုင်ခုံ ချိန်ညှိခလုတ်က ထိုင်ခုံပုံစံ ဖြစ်နေတယ်",
+        "မီးခလုတ်တွေက အခန်းထဲ မီးနေရာအတိုင်း စီထားတယ်",
+        "Volume slider ကို အသံကျယ်ချင်ရင် အပေါ်တွန်း၊ တိတ်ချင်ရင် အောက်ဆွဲ",
+        "ကားပြတင်းပေါက်ခလုတ် ၄ ခုက ပြတင်းပေါက် ၄ ခုရဲ့ နေရာအတိုင်း ချထားတယ်"
+      ]
+    },
+    "tags": [
+      "natural-mapping",
+      "don-norman",
+      "spatial-design",
+      "usability",
+      "controls"
+    ]
+  },
+  {
+    "title": {
+      "en": "Progressive Disclosure",
+      "mm": "Progressive Disclosure (အဆင့်ဆင့် ဖော်ပြခြင်း)"
+    },
+    "question": {
+      "en": "What is Progressive Disclosure and why is it effective?",
+      "mm": "Progressive Disclosure ဆိုတာ ဘာလဲ၊ ဘာကြောင့် ထိရောက်တာလဲ?"
+    },
+    "answer": {
+      "en": "Progressive Disclosure means showing users only the information they need at each moment, then revealing more details step by step as they go deeper. It reduces overwhelm by breaking complex information into manageable layers.",
+      "mm": "User ကို အချိန်တိုင်းမှာ လိုတဲ့ info ပဲ ပြတယ်။ ပိုသိချင်ရင် ဆက်နှိပ်၊ ထပ်ပြမယ်။ info တွေ တစ်ခါတည်း ပုံမသွန်ဘဲ အလွှာလေးတွေ ခွဲပြတာ။"
+    },
+    "why": {
+      "en": "- J.M. Keller introduced it in the 1980s as part of his ARCS model\n- Brain receives 40 billion sensory inputs/second, only 40 reach consciousness\n- Too much info at once causes overload\n- What matters is NOT click count, but how much thinking each click requires\n- Right amount of info at each step = users flow naturally",
+      "mm": "- J.M. Keller ဆိုတဲ့ ပါမောက္ခက 1980 မှာ ARCS model ထဲ ထည့်ခဲ့တယ်\n- ဦးနှောက်က တစ်စက္ကန့်မှာ input ၄၀ ဘီလီယံ ရပေမယ့် သတိထားမိတာ ၄၀ ပဲ\n- info တစ်ခါတည်း များရင် ဦးနှောက် overload ဖြစ်တယ်\n- Click ဘယ်နှစ်ခါ နှိပ်ရလဲ မဟုတ်ဘူး — click တစ်ခုစီမှာ ဘယ်လောက် တွေးရလဲ က အရေးကြီးတာ\n- အဆင့်တိုင်းမှာ info အနည်းအများ မှန်ရင် user က သဘာဝအတိုင်း flow ဖြစ်သွားတယ်"
+    },
+    "examples": {
+      "en": [
+        "MailChimp showing feature overview first, then details on click",
+        "Settings pages with \"Advanced\" sections collapsed by default",
+        "E-commerce filters that expand subcategories on demand",
+        "FAQ pages with expandable answers"
+      ],
+      "mm": [
+        "MailChimp က feature overview ကို အရင်ပြတယ်၊ နှိပ်မှ detail ထွက်လာတယ်",
+        "Settings page မှာ \"Advanced\" ကို ခေါက်ထားတယ်",
+        "E-commerce filter မှာ subcategory ကို လိုမှပဲ ဖြန့်ပြတယ်",
+        "FAQ page မှာ မေးခွန်းပဲ မြင်ရတယ်၊ နှိပ်မှ အဖြေ ဖြန့်ထွက်လာတယ်"
+      ]
+    },
+    "tags": [
+      "progressive-disclosure",
+      "information-architecture",
+      "cognitive-load",
+      "simplicity",
+      "usability"
+    ]
+  },
+  {
+    "title": {
+      "en": "Recognition Over Recall",
+      "mm": "Recognition Over Recall (အမှတ်ရခြင်းထက် မြင်မှတ်ခြင်း)"
+    },
+    "question": {
+      "en": "What does \"Recognition Over Recall\" mean in UX?",
+      "mm": "UX မှာ \"Recognition Over Recall\" ဆိုတာ ဘာလဲ?"
+    },
+    "answer": {
+      "en": "Users should recognize what to do from visible options rather than having to remember instructions from memory. Show choices instead of making users type or recall.",
+      "mm": "User ကို ဘာလုပ်ရမလဲ မှတ်မိခိုင်းမယ့်အစား မြင်ရတဲ့ ရွေးစရာတွေကနေ ရွေးခိုင်းတာ ပိုကောင်းတယ်။ မှတ်ခိုင်းတာထက် ပြပေးတာ ပိုလွယ်တယ်။"
+    },
+    "why": {
+      "en": "- Recognition is much easier than recall because it uses context clues\n- Link labels should match the page heading they lead to — so users don't need to remember\n- Cognitive load: recall costs more brain resources than visual or motor actions\n- More clicks but less thinking = better experience",
+      "mm": "- Recognition က context သဲလွန်စ သုံးတာမို့ recall ထက် အများကြီး လွယ်တယ်\n- Link label နဲ့ ရောက်မယ့် page heading တူအောင်ထား — user မှတ်စရာ မလိုတော့ဘူး\n- Recall က ဦးနှောက် resource ပိုကုန်တယ်၊ ကြည့်တာ/နှိပ်တာထက်\n- Click ပိုများပေမယ့် တွေးစရာ နည်းရင် user ပိုပျော်တယ်"
+    },
+    "examples": {
+      "en": [
+        "Dropdown menus showing options instead of blank text fields",
+        "Recently visited links changing color",
+        "Search suggestions appearing as you type",
+        "File browser showing icons with names instead of path-only navigation"
+      ],
+      "mm": [
+        "ဗလာ text field အစား dropdown menu နဲ့ ရွေးစရာတွေ ပြတယ်",
+        "ဝင်ပြီးသား link တွေ အရောင်ပြောင်းသွားတယ်",
+        "ရိုက်နေတုန်း search suggestion ပေါ်လာတယ်",
+        "File browser မှာ path ပဲ မဟုတ်ဘဲ icon လေးတွေနဲ့ name ပါ ပြတယ်"
+      ]
+    },
+    "tags": [
+      "recognition",
+      "recall",
+      "cognitive-load",
+      "usability",
+      "heuristic"
+    ]
+  },
+  {
+    "title": {
+      "en": "Social Proof",
+      "mm": "Social Proof (လူမှုအထောက်အထား)"
+    },
+    "question": {
+      "en": "What is Social Proof and how is it used in UX design?",
+      "mm": "Social Proof ဆိုတာ ဘာလဲ၊ UX design မှာ ဘယ်လိုသုံးတာလဲ?"
+    },
+    "answer": {
+      "en": "Social Proof is a psychological phenomenon where people copy the actions of others when they're unsure what to do. In design, showing what other users are doing builds trust and guides decisions.",
+      "mm": "လူတွေက ဘာလုပ်ရမလဲ မသေချာရင် တခြားသူတွေ လုပ်နေတာကို ကြည့်ပြီး လိုက်လုပ်တတ်တယ်။ Design မှာ တခြား user တွေ ဘာလုပ်နေတယ် ပြတာက ယုံကြည်မှု တည်ဆောက်ပေးတယ်။"
+    },
+    "why": {
+      "en": "- One of Robert Cialdini's 6 persuasion principles\n- When uncertain, people look at what others are doing and follow\n- Personality + social proof are the main trust-building factors\n- Even more effective when combined with reciprocation",
+      "mm": "- Robert Cialdini ရဲ့ persuasion principle ၆ ခုထဲက တစ်ခု\n- မသေချာရင် \"တခြားသူတွေ ဘာလုပ်နေလဲ\" ဆိုတာကို ကြည့်ပြီး လိုက်လုပ်တတ်တယ်\n- Personality + social proof ပေါင်းရင် trust တည်ဆောက်ဖို့ အကောင်းဆုံး\n- Reciprocation (ကျေးဇူးတုံ့ပြန်) နဲ့ ပေါင်းသုံးရင် ပိုထိရောက်"
+    },
+    "examples": {
+      "en": [
+        "\"4,500 people bought this today\" on product pages",
+        "Star ratings and review counts next to products",
+        "\"John and 3 other friends like this\" on Facebook",
+        "Testimonials and case studies on landing pages"
+      ],
+      "mm": [
+        "Product page မှာ \"ဒီနေ့ လူ ၄,၅၀၀ ဝယ်ပြီး\" ပြထားတယ်",
+        "Product ဘေးမှာ star rating နဲ့ review ဘယ်နှစ်ခု ရှိတယ် ပြထားတယ်",
+        "Facebook မှာ \"John နဲ့ သူငယ်ချင်း ၃ ယောက် like လုပ်ထားတယ်\"",
+        "Landing page မှာ testimonial နဲ့ case study ထည့်ထားတယ်"
+      ]
+    },
+    "tags": [
+      "social-proof",
+      "persuasion",
+      "trust",
+      "conversion",
+      "psychology"
+    ]
+  },
+  {
+    "title": {
+      "en": "Visual Hierarchy",
+      "mm": "Visual Hierarchy (အမြင်အဆင့်ဆင့်စီစဉ်မှု)"
+    },
+    "question": {
+      "en": "What is Visual Hierarchy and what are its building blocks?",
+      "mm": "Visual Hierarchy ဆိုတာ ဘာလဲ၊ ဘာတွေနဲ့ တည်ဆောက်ထားတာလဲ?"
+    },
+    "answer": {
+      "en": "Visual Hierarchy is the arrangement of design elements to guide the user's eye in order of importance. It uses size, color, contrast, layout, spacing, and style to make some elements stand out more than others so users instantly know what matters most.",
+      "mm": "User ရဲ့ မျက်လုံးကို အရေးကြီးတာကနေ စပြီး လမ်းညွှန်ဖို့ element တွေကို စီစဉ်ထားတာ။ Size, color, contrast, spacing တွေနဲ့ ဘာ အရေးကြီးဆုံးလဲ ချက်ချင်း သိစေတယ်။"
+    },
+    "why": {
+      "en": "- Important things are more prominent (larger, bolder, distinct color, more whitespace)\n- Related things are visually grouped together\n- Nested items show parent-child relationships\n- Without hierarchy, everything competes equally → users leave\n- Building blocks: size, color, layout, spacing, style",
+      "mm": "- အရေးကြီးတာကို ပိုထင်ရှားအောင် လုပ်ရတယ် — ပိုကြီး၊ ပိုထူ၊ အရောင်ထူးခြား၊ whitespace များ\n- ဆက်စပ်တာတွေကို မျက်စိနဲ့ အုပ်စုတူပုံ ပေါ်အောင် စီထားရတယ်\n- အထဲက item တွေက parent-child ဆက်နွယ်မှု ပြရတယ်\n- Hierarchy မရှိရင် element အကုန် တန်းတူ ယှဉ်နေတာမို့ user ရှုပ်ပြီး ထွက်သွားတယ်\n- တည်ဆောက်တဲ့ အရာတွေ: size, color, layout, spacing, style"
+    },
+    "examples": {
+      "en": [
+        "Headlines bigger than body text to show importance",
+        "Colored call-to-action buttons standing out against neutral backgrounds",
+        "Related content grouped in cards with consistent spacing",
+        "Bold key terms in a paragraph to guide scanning"
+      ],
+      "mm": [
+        "Headline ကို body text ထက် ပိုကြီးအောင် ထားတယ်",
+        "CTA button ကို background နဲ့ ခြားပြီး အရောင်ထည့်ထားတယ်",
+        "ဆက်စပ်တဲ့ content တွေကို card ထဲမှာ spacing ညီညီနဲ့ စုထားတယ်",
+        "Paragraph ထဲက အဓိကစာလုံးတွေကို bold လုပ်ပြီး scan လုပ်ရလွယ်အောင် ဆွဲထားတယ်"
+      ]
+    },
+    "tags": [
+      "visual-hierarchy",
+      "size",
+      "color",
+      "contrast",
+      "layout",
+      "typography"
+    ]
+  },
+  {
+    "title": {
+      "en": "White Space (Negative Space)",
+      "mm": "White Space (အလွတ်နေရာ)"
+    },
+    "question": {
+      "en": "What is White Space and why is it valuable in design?",
+      "mm": "White Space ဆိုတာ ဘာလဲ၊ design မှာ ဘာကြောင့် တန်ဖိုးရှိတာလဲ?"
+    },
+    "answer": {
+      "en": "White space is the empty area between and around design elements. It's not wasted space — it improves readability, creates visual hierarchy, and gives content room to breathe.",
+      "mm": "Design element တွေ ကြားနဲ့ ပတ်ပတ်လည်မှာ ချန်ထားတဲ့ အလွတ်နေရာ။ ဖြုန်းတဲ့ နေရာ မဟုတ်ဘူး — ဖတ်ရလွယ်စေတယ်၊ hierarchy ဖန်တီးတယ်၊ content ကို ရှူရှိုက်စရာ နေရာပေးတယ်။"
+    },
+    "why": {
+      "en": "- More whitespace around an element = looks more important\n- Apple, Google use generous whitespace — it feels premium\n- Cluttered design → user overwhelmed → bounce rate goes up\n- Two types: micro (line spacing, padding) and macro (section gaps)\n- It's not \"leaving empty\" — it's \"intentionally placing nothing\"",
+      "mm": "- Element ပတ်လည် white space များလေ ပိုအရေးကြီးပုံ ပေါ်လေ\n- Apple, Google တို့ white space ကျယ်ကျယ် သုံးတယ် — premium ခံစားရတယ်\n- ပြည့်ကျပ်နေတဲ့ design → user overwhelm → bounce rate တက်\n- အမျိုးအစား ၂ ခု ရှိတယ်: micro (line spacing, padding) နဲ့ macro (section gap)\n- \"ဘာမှ မထည့်လိုက်တာ\" မဟုတ်ဘူး \"တမင် ဗလာ ချန်ထားတာ\" ဖြစ်တယ်"
+    },
+    "examples": {
+      "en": [
+        "Apple product pages with large gaps between sections",
+        "Google's homepage with massive white space around the search bar",
+        "Generous line-height (1.5-1.8) in body text for readability",
+        "Card designs with internal padding separating content from edges"
+      ],
+      "mm": [
+        "Apple product page မှာ section ကြား gap ကြီးကြီးတွေ ချန်ထားတယ်",
+        "Google homepage မှာ search bar ပတ်ပတ်လည် white space ကျယ်ကျယ်",
+        "Body text မှာ line-height (1.5-1.8) ထားပြီး ဖတ်ရ သက်သာအောင် လုပ်ထားတယ်",
+        "Card design ထဲမှာ content နဲ့ အနား ကြား padding ထည့်ထားတယ်"
+      ]
+    },
+    "tags": [
+      "white-space",
+      "negative-space",
+      "layout",
+      "minimalism",
+      "readability"
+    ]
+  }
+];
+  </script>
+  <!-- CARDS-DATA-END -->
+  <script>
+    // ========== i18n ==========
+    const i18n = {
+      en: {
+        title: "Design Flash Cards",
+        subtitle: "Essential design principles & concepts",
+        cards: "cards", topics: "topics",
+        search: "Search cards...",
+        question: "Question", answer: "Answer",
+        why: "Why it matters", examples: "Examples",
+        reveal: "Click or press Space to reveal",
+        previous: "Previous", next: "Next",
+        noCards: "No cards found",
+        kbdOpen: "Open", kbdClose: "Close",
+        kbdNav: "Navigate", kbdReveal: "Reveal"
+      },
+      mm: {
+        title: "\u1012\u1005\u103A\u1007\u102D\u102F\u1004\u103A\u1038 Flash Cards",
+        subtitle: "\u1021\u1014\u103E\u1005\u103A\u101E\u102C\u1038 \u1012\u1005\u103A\u1007\u102D\u102F\u1004\u103A\u1038 \u1021\u1001\u103C\u1031\u1001\u1036\u1019\u103B\u102C\u1038\u1014\u103E\u1004\u1037\u103A \u1021\u101A\u1030\u1021\u1006\u1004\u103A\u1019\u103B\u102C\u1038",
+        cards: "\u1000\u1012\u103A", topics: "\u1001\u1031\u102B\u1004\u103A\u1038\u1005\u1025\u103A",
+        search: "\u1000\u1012\u103A\u1019\u103B\u102C\u1038\u101B\u103E\u102C\u1019\u100A\u103A...",
+        question: "\u1019\u1031\u1038\u1001\u103D\u1014\u103A\u1038", answer: "\u1021\u1016\u103C\u1031",
+        why: "\u1018\u102C\u1000\u103C\u1031\u102C\u1004\u1037\u103A \u1021\u101B\u1031\u1038\u1000\u103C\u102E\u1038\u101E\u101C\u1032",
+        examples: "\u1025\u1015\u1019\u102C\u1019\u103B\u102C\u1038",
+        reveal: "\u1021\u1016\u103C\u1031\u1000\u102D\u102F \u1000\u103C\u100A\u1037\u103A\u101B\u1014\u103A Click \u101E\u102D\u102F\u1037\u1019\u101F\u102F\u1010\u103A Space \u1014\u103E\u102D\u1015\u103A\u1015\u102B",
+        previous: "\u101A\u1001\u1004\u103A", next: "\u1014\u1031\u102C\u1000\u103A",
+        noCards: "\u1000\u1012\u103A\u101B\u103E\u102C\u1019\u1010\u103D\u1031\u1037\u1015\u102B",
+        kbdOpen: "\u1016\u103D\u1004\u1037\u103A", kbdClose: "\u1015\u102D\u1010\u103A",
+        kbdNav: "\u101B\u103D\u1031\u1037", kbdReveal: "\u1021\u1016\u103C\u1031\u1015\u103C"
+      }
+    };
+
+    // Card icons (SVG paths)
+    const icons = [
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>',
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 3v18"/></svg>',
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>',
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>',
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>',
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>'
+    ];
+
+    // Bento size patterns: which cards are "tall" (show answer preview)
+    const bentoPattern = [true, false, false, false, true, true, false, true];
+
+    // cardFiles loaded from cards-data.js (generated by build.js)
+    // To add cards: create .md in cards/ folder, then run: node build.js
+
+    // ========== State ==========
+    let currentLang = 'en';
+    let currentTheme = 'dark';
+    let currentIndex = -1;
+    let filteredCards = [...cardFiles];
+
+    // ========== Elements ==========
+    const cardListEl = document.getElementById('card-list');
+    const searchInput = document.getElementById('search');
+    const overlay = document.getElementById('detail-overlay');
+    const detailContent = document.getElementById('detail-content');
+    const detailGradientBar = document.getElementById('detail-gradient-bar');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const closeBtn = document.getElementById('detail-close');
+    const langToggle = document.getElementById('lang-toggle');
+    const themeToggle = document.getElementById('theme-toggle');
+
+    const allTags = [...new Set(cardFiles.flatMap(c => c.tags))].sort();
+
+    // ========== Helpers ==========
+    function t(key) { return i18n[currentLang][key]; }
+    function ct(card, field) { const v = card[field]; return typeof v === 'string' ? v : v[currentLang]; }
+    function cl(card, field) { const v = card[field]; return Array.isArray(v) && typeof v[0] === 'string' ? v : v[currentLang]; }
+
+    function getGradient(i) {
+      const g = ['linear-gradient(135deg, #7c6aff, #c084fc)', 'linear-gradient(135deg, #22d3ee, #7c6aff)', 'linear-gradient(135deg, #ff6b9d, #fbbf24)', 'linear-gradient(135deg, #34d399, #22d3ee)', 'linear-gradient(135deg, #fbbf24, #ff6b9d)'];
+      return g[i % g.length];
+    }
+
+    // ========== UI text ==========
+    function updateUIText() {
+      document.getElementById('main-title').textContent = t('title');
+      document.getElementById('main-subtitle').textContent = t('subtitle');
+      document.getElementById('stat-cards').textContent = t('cards');
+      document.getElementById('stat-topics').textContent = t('topics');
+      document.getElementById('card-count').textContent = cardFiles.length;
+      document.getElementById('tag-count').textContent = allTags.length;
+      searchInput.placeholder = t('search');
+      prevBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg> ${t('previous')}`;
+      nextBtn.innerHTML = `${t('next')} <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>`;
+      document.getElementById('keyboard-hints').innerHTML = `
+        <span class="kbd-hint"><kbd>Enter</kbd> ${t('kbdOpen')}</span>
+        <span class="kbd-hint"><kbd>Esc</kbd> ${t('kbdClose')}</span>
+        <span class="kbd-hint"><kbd>&larr;</kbd><kbd>&rarr;</kbd> ${t('kbdNav')}</span>
+        <span class="kbd-hint"><kbd>Space</kbd> ${t('kbdReveal')}</span>`;
+    }
+
+    function filterCards() {
+      const q = searchInput.value.toLowerCase().trim();
+      filteredCards = cardFiles.filter(card => {
+        if (!q) return true;
+        return ct(card,'title').toLowerCase().includes(q) ||
+          ct(card,'question').toLowerCase().includes(q) ||
+          ct(card,'answer').toLowerCase().includes(q) ||
+          card.tags.some(t => t.includes(q));
+      });
+      renderList();
+    }
+
+    function renderList() {
+      if (filteredCards.length === 0) {
+        cardListEl.innerHTML = `<div class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <p>${t('noCards')}</p></div>`;
+        return;
+      }
+
+      cardListEl.innerHTML = filteredCards.map((card, i) => {
+        const gi = cardFiles.indexOf(card);
+        const colorIdx = gi % 5;
+        const isTall = bentoPattern[gi % bentoPattern.length];
+
+        let html = `<div class="card-item" data-index="${gi}" data-color="${colorIdx}" tabindex="0">
+          <div class="card-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+          <div class="card-title">${ct(card, 'title')}</div>
+          <div class="card-question">${ct(card, 'question')}</div>`;
+
+        html += `<div class="card-tags">${card.tags.map(t => `<span class="card-tag">${t}</span>`).join('')}</div></div>`;
+        return html;
+      }).join('');
+    }
+
+    function openDetail(index) {
+      currentIndex = index;
+      const card = cardFiles[index];
+      detailGradientBar.style.background = getGradient(index);
+
+      detailContent.innerHTML = `
+        <h2 class="detail-title">${ct(card, 'title')}</h2>
+        <div class="detail-section">
+          <div class="detail-label label-question">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            ${t('question')}
+          </div>
+          <p class="detail-text">${ct(card, 'question')}</p>
+        </div>
+        <div class="detail-section">
+          <div class="detail-label label-answer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+            ${t('answer')}
+          </div>
+          <div class="detail-answer-box hidden" id="answer-box">
+            <p class="detail-text">${ct(card, 'answer')}</p>
+            <div class="reveal-hint">${t('reveal')}</div>
+          </div>
+        </div>
+        <div class="detail-section detail-hidden-until-reveal" style="display:none">
+          <div class="detail-label label-why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 11.5-8.5 8.5-5-5L2 20.5"/><path d="m21 5-8.5 8.5"/></svg>
+            ${t('why')}
+          </div>
+          <div class="detail-why-box"><ul class="detail-why-list">${ct(card, 'why').split('\n').filter(l => l.trim()).map(l => `<li>${l.replace(/^-\s*/, '')}</li>`).join('')}</ul></div>
+        </div>
+        <div class="detail-section detail-hidden-until-reveal" style="display:none">
+          <div class="detail-label" style="color: var(--text-muted)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg>
+            ${t('examples')}
+          </div>
+          <ul class="detail-examples">${cl(card, 'examples').map(e => `<li>${e}</li>`).join('')}</ul>
+        </div>
+        <div class="detail-tags">${card.tags.map(t => `<span class="detail-tag">${t}</span>`).join('')}</div>`;
+
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === cardFiles.length - 1;
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetail() {
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+      currentIndex = -1;
+    }
+
+    function toggleAnswer() {
+      const box = document.getElementById('answer-box');
+      if (box) {
+        box.classList.toggle('hidden');
+        if (!box.classList.contains('hidden')) {
+          document.querySelectorAll('.detail-hidden-until-reveal').forEach(el => el.style.display = '');
+        }
+      }
+    }
+
+    // ========== Theme & Lang ==========
+    function setTheme(theme) {
+      currentTheme = theme;
+      document.documentElement.classList.toggle('light', theme === 'light');
+      themeToggle.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.theme === theme));
+      localStorage.setItem('dfc-theme', theme);
+    }
+
+    function setLang(lang) {
+      currentLang = lang;
+      langToggle.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
+      updateUIText();
+      filterCards();
+      if (currentIndex >= 0) openDetail(currentIndex);
+      localStorage.setItem('dfc-lang', lang);
+    }
+
+    // ========== Events ==========
+    langToggle.addEventListener('click', e => { const b = e.target.closest('.toggle-btn'); if (b?.dataset.lang) setLang(b.dataset.lang); });
+    themeToggle.addEventListener('click', e => { const b = e.target.closest('.toggle-btn'); if (b?.dataset.theme) setTheme(b.dataset.theme); });
+    cardListEl.addEventListener('click', e => { const item = e.target.closest('.card-item'); if (item) openDetail(parseInt(item.dataset.index)); });
+    closeBtn.addEventListener('click', closeDetail);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeDetail(); });
+    prevBtn.addEventListener('click', () => { if (currentIndex > 0) openDetail(currentIndex - 1); });
+    nextBtn.addEventListener('click', () => { if (currentIndex < cardFiles.length - 1) openDetail(currentIndex + 1); });
+    searchInput.addEventListener('input', filterCards);
+
+    document.addEventListener('keydown', e => {
+      if (overlay.classList.contains('active')) {
+        if (e.key === 'Escape') closeDetail();
+        if (e.key === 'ArrowLeft' && currentIndex > 0) { e.preventDefault(); openDetail(currentIndex - 1); }
+        if (e.key === 'ArrowRight' && currentIndex < cardFiles.length - 1) { e.preventDefault(); openDetail(currentIndex + 1); }
+        if (e.key === 'ArrowUp' && currentIndex > 0) { e.preventDefault(); openDetail(currentIndex - 1); }
+        if (e.key === 'ArrowDown' && currentIndex < cardFiles.length - 1) { e.preventDefault(); openDetail(currentIndex + 1); }
+        if (e.key === ' ') { e.preventDefault(); toggleAnswer(); }
+      } else if (e.key === 'Enter') {
+        const f = document.activeElement;
+        if (f?.classList.contains('card-item')) { e.preventDefault(); openDetail(parseInt(f.dataset.index)); }
+      }
+    });
+
+    document.addEventListener('click', e => { if (e.target.closest('#answer-box')) toggleAnswer(); });
+
+    // ========== Init ==========
+    setTheme(localStorage.getItem('dfc-theme') || 'dark');
+    setLang(localStorage.getItem('dfc-lang') || 'en');
+  </script>
+</body>
+</html>
